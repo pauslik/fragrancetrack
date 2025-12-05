@@ -16,20 +16,12 @@ class Fragrance():
         self.my_score = score
         self.my_review = review
         # modified
-        self.concentration = None
-        self.public_score = None
-        self.accords = None
-        self.notes = None
-        self.card = os.path.abspath(f'./db/cards/{self.brand}/{self.name}')
-        self.link = f'https://www.fragrantica.com/designers/{self.brand}.html'
-
-
-    # def export_dict(self) -> dict:
-    #     export = {}
-
-    #     return export
-
-
+        # self.concentration = None
+        # self.public_score = None
+        # self.accords = None
+        # self.notes = None
+        # self.card = os.path.abspath(f'./db/cards/{self.brand}/{self.name}')
+        # self.link = f'https://www.fragrantica.com/designers/{self.brand}.html'
 
     def __repr__(self) -> str:
         name = f'{self.brand} - {self.name}'
