@@ -2,8 +2,8 @@ import unittest
 
 from src.fragrance import Fragrance
 
-class TestClassSpecialMethods(unittest.TestCase):
-    def test_dunders(self):
+class TestFragrance(unittest.TestCase):
+    def test_special_methods(self):
         # init
         frag1 = Fragrance("Azzaro", "The Most Wanted Intense")
         frag2 = Fragrance("Azzaro", "The Most Wanted Parfum", 10, "Even stronger spices with vanilla.")

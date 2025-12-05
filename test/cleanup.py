@@ -1,0 +1,25 @@
+import os
+
+class TempFiles():
+    def __init__(self) -> None:
+        self.files = []
+
+    def add_file(self, file):
+        if os.path.exists(file):
+            self.files.append(file)
+        else:
+            raise Exception(f'Not a valid file path: {file}')
+        return True
+
+    def cleanup(self):
+        for file in self.files:
+            # print("Cleaning up test files:")
+            if os.path.exists(file):
+                os.remove(file)
+                print(f'Removed: {file}')
+            else:
+                print(f'Not Found: {file}')
+        # if len(self.files) > 0:
+        #     print("Cleanup done.")
+        self.files = []
+        return True

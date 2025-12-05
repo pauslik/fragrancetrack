@@ -1,6 +1,5 @@
 import os
 from enum import Enum
-from notes import Notes
 
 class Concentration(Enum):
     PARFUM = ("Parfum", "Pure Parfum", "Extrait", "Extrait de Parfum")
@@ -9,7 +8,7 @@ class Concentration(Enum):
     COLOGNE = ("EDC", "Cologne", "Eau De Cologne")
 
 class Fragrance():
-    def __init__(self, brand: str, name: str, score: int | None = None, review: str = "") -> None:
+    def __init__(self, brand: str, name: str, score: int | None = None, review = "") -> None:
         # required
         self.brand = brand
         self.name = name

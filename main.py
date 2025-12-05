@@ -1,8 +1,8 @@
 from src.database import Database
 
 def main():
-    db = Database()
-    print(db.df)
+    review_db = Database("review_db.json")
+    print(review_db.df)
 
 
 if __name__ == "__main__":
