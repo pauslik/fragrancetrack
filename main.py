@@ -1,15 +1,11 @@
+import os
 from src.database import Database
 from src.fragrance import Fragrance
 
 def main():
     review_db = Database("review_db.json")
-    print(review_db.df)
-    lmlp = Fragrance("Jean Paul Gaultier", "Le Male Le Parfum", 10)
-    vrse = Fragrance("Viktor & Rolf", "Spicebomb Extreme", 10)
-    review_db.add_fragrance(lmlp)
-    review_db.add_fragrance(vrse)
-    print(review_db.df)
-    review_db.remove_fragrance(vrse)
+    # review_db.import_db_from_excel(os.path.abspath("input/old.xlsx"))
+    # review_db.import_db_from_excel(os.path.abspath("input/new.xlsx"))
     print(review_db.df)
 
 

@@ -1,20 +1,20 @@
 import os
 from enum import Enum
 
-class Concentration(Enum):
+# TODO decide if I'm going to use this or not, seems kinda useless
+class Conc(Enum):
     PARFUM = ("Parfum", "Pure Parfum", "Extrait", "Extrait de Parfum")
     EDP = ("Eau De Parfum", "EDP")
     EDT = ("EDT", "Eau De Toilette")
     COLOGNE = ("EDC", "Cologne", "Eau De Cologne")
 
 class Fragrance():
-    def __init__(self, brand: str, name: str, score: int | None = None, review = "") -> None:
+    def __init__(self, brand: str, name: str, my_score: int | None = None):
         # required
         self.brand = brand
         self.name = name
         # optional
-        self.my_score = score
-        self.my_review = review
+        self.my_score = my_score
         # modified
         # self.concentration = None
         # self.public_score = None

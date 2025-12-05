@@ -6,8 +6,8 @@ class TestFragrance(unittest.TestCase):
     def test_special_methods(self):
         # init
         frag1 = Fragrance("Azzaro", "The Most Wanted Intense")
-        frag2 = Fragrance("Azzaro", "The Most Wanted Parfum", 10, "Even stronger spices with vanilla.")
-        frag3 = Fragrance("Azzaro", "The Most Wanted Intense", 8, "Somehow they have EDP and EDT Intense versions")
+        frag2 = Fragrance("Azzaro", "The Most Wanted Parfum", 10)
+        frag3 = Fragrance("Azzaro", "The Most Wanted Intense", 8)
         # repr
         string1 = str(frag1)
         string2 = str(frag2)

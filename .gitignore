@@ -11,3 +11,4 @@ wheels/
 
 # custom
 db/
+input/*
