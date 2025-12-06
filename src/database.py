@@ -47,7 +47,7 @@ class Database():
         return True
 
 
-class Public(Database):
+class PublicList(Database):
     def __init__(self, file) -> None:
         self.schema = pl.Schema({"brand": pl.String(), "name": pl.String()})
         super().__init__(file=file, schema=self.schema)
@@ -59,6 +59,8 @@ class Tracker(Database):
         # TODO make a schema builder from class variables
         self.schema = pl.Schema({"brand": pl.String(), "name": pl.String(), "my_score": pl.Int64()})
         super().__init__(file=file, schema=self.schema)  
+
+    # TODO add check & download of cards for every perfume in the tracker
 
     def get_fragrance(self, brand, name) -> Fragrance:
         frag = Fragrance(brand, name)

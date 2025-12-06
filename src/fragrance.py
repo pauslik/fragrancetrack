@@ -1,12 +1,5 @@
 import os
-from enum import Enum
 
-# TODO decide if I'm going to use this or not, seems kinda useless
-class Conc(Enum):
-    PARFUM = ("Parfum", "Pure Parfum", "Extrait", "Extrait de Parfum")
-    EDP = ("Eau De Parfum", "EDP")
-    EDT = ("EDT", "Eau De Toilette")
-    COLOGNE = ("EDC", "Cologne", "Eau De Cologne")
 
 class Fragrance():
     def __init__(self, brand: str, name: str, my_score: int | None = None):
@@ -15,13 +8,21 @@ class Fragrance():
         self.name = name
         # optional
         self.my_score = my_score
-        # modified
-        # self.concentration = None
-        # self.public_score = None
-        # self.accords = None
-        # self.notes = None
-        # self.card = os.path.abspath(f'./db/cards/{self.brand}/{self.name}')
-        # self.link = f'https://www.fragrantica.com/designers/{self.brand}.html'
+        # generated
+        self.fragrantica = {
+            "designer": self.brand.replace(' ', '_'),
+            "perfume": self.name.replace(' ', '_'),
+            "card": os.path.abspath(f'./db/cards/{self.brand.replace(' ', '_')}_{self.name.replace(' ', '_')}.jpeg')
+        }
+        # self.f_id = None
+        # self.f_score = None
+        # self.f_accords = None
+        # self.f_notes = None
+        # self.f_card = os.path.abspath(f'./db/cards/{self.fragrantica["designer"]}_{self.fragrantica["perfume"]}')
+        # self.f_link = f'https://www.fragrantica.com/perfume/{self.fragrantica["designer"]}/{self.fragrantica["perfume"]}-{self.fragrantica["id"]}.html'
+
+    def get_fragrantica_details(self):
+        return self.fragrantica
 
     def __repr__(self) -> str:
         name = f'{self.brand} - {self.name}'

@@ -4,7 +4,7 @@ import polars as pl
 
 from cleanup import TempFiles
 from src.fragrance import Fragrance
-from src.database import Tracker, Public
+from src.database import Tracker, PublicList
 from polars.testing import assert_frame_equal, assert_frame_not_equal
 
 class TestDatabase(unittest.TestCase):
