@@ -4,7 +4,7 @@ import polars as pl
 
 from cleanup import TempFiles
 from src.fragrance import Fragrance
-from src.database import Database
+from src.database import Tracker, Public
 from polars.testing import assert_frame_equal, assert_frame_not_equal
 
 class TestDatabase(unittest.TestCase):
@@ -15,7 +15,7 @@ class TestDatabase(unittest.TestCase):
         cls.db_file = os.path.abspath("./db/test_db.json")
         cls.temp_files.add_file(cls.db_file)
         # database to be used in all tests
-        cls.db = Database("test_db.json")
+        cls.db = Tracker("test_db.json")
 
     @classmethod
     def tearDownClass(cls):
@@ -31,7 +31,7 @@ class TestDatabase(unittest.TestCase):
         # write
         df.write_json(os.path.abspath(self.db_file))
         # read
-        self.db = Database("test_db.json")
+        self.db = Tracker("test_db.json")
         assert_frame_equal(df, self.db.df)
 
     def test_add_frag(self):
@@ -41,7 +41,13 @@ class TestDatabase(unittest.TestCase):
         # existing
         self.assertFalse(self.db.add_fragrance(new_frag))
 
-    # def test_get_frag(self):
+    def test_get_frag(self):
+        new_frag = Fragrance("Versace", "Eros EDP", 9)
+        self.db.add_fragrance(new_frag)
+        found = self.db.get_fragrance("Versace", "Eros EDP")
+        self.assertTrue(new_frag, found)
+        with self.assertRaises(Exception):
+            self.db.get_fragrance("Versace", "Eros Flame")
 
     def test_remove_frag(self):
         frag1 = Fragrance("Jean Paul Gaultier", "Le Male Le Parfum", 10)
