@@ -2,16 +2,16 @@ import os
 import re
 from curl_cffi import requests
 from bs4 import BeautifulSoup
-from fragrance import Fragrance
+
 
 def write_temp_html(html):
     with open(os.path.abspath("./temp.html"), "w") as file:
         file.write(html)
 
-def find_fragrantica_page(frag: Fragrance):
-    # TODO figure out the link search
-    link = "https://www.fragrantica.com/perfume/Amouage/Reflection-Man-920.html"
-    return link
+# def find_fragrantica_page(frag: Fragrance):
+#     link = frag.link
+#     # link = "https://www.fragrantica.com/perfume/Amouage/Reflection-Man-920.html"
+#     return link
 
 def get_fragrantica_html(link):
     response = requests.get(link, impersonate="chrome")
@@ -40,11 +40,16 @@ def parse_fragrantica_page(html: str) -> dict:
     all_images = soup.find_all("meta", property="og:image")
     for image in all_images:
         link = image["content"]
-        if link.startswith(card_repository+'en-p_c'):
-            image_link = link
-            break
+        if isinstance(link, str):
+            if link.startswith(card_repository+'en-p_c'):
+                image_link = link
+                break
+    # TODO add an exception after it checks every meta tag and doesn't find the correct one
     match = re.search(pattern, image_link)
-    image_file = match.group(0)
+    if isinstance(match, re.Match):
+        image_file = match.group(0)
+    else:
+        raise Exception(f'Card link pattern ({pattern}) not found in string: {image_link}')
     card_link = card_repository + image_file
     
     result["card"] = card_link
@@ -53,10 +58,10 @@ def parse_fragrantica_page(html: str) -> dict:
     # return aggregated dict with all relevant values found
     return result
 
-def download_fragrantica_card(frag: Fragrance):
-    # do something about these steps, maybe make one function?
-    file_path = frag.fragrantica["card"]
-    frag_link = find_fragrantica_page(frag)
+def download_fragrantica_card(frag_link, file_path):
+    # TODO check if the image already exists
+    if os.path.exists(file_path):
+        return False
     frag_html = get_fragrantica_html(frag_link)
     html_dict = parse_fragrantica_page(frag_html)
     card_link = html_dict["card"]
@@ -67,6 +72,3 @@ def download_fragrantica_card(frag: Fragrance):
             file.write(response.content)
     else:
         raise Exception(f"Failed to download image. Status code: {response.status_code}")
-
-reflection = Fragrance("Amouage", "Reflection Man")
-download_fragrantica_card(reflection)

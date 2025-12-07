@@ -1,5 +1,6 @@
 import os
-
+from src.algolia import search_algolia
+from src.fragrantica import download_fragrantica_card
 
 class Fragrance():
     def __init__(self, brand: str, name: str, my_score: int | None = None):
@@ -9,28 +10,32 @@ class Fragrance():
         # optional
         self.my_score = my_score
         # generated
-        self.fragrantica = {
-            "designer": self.brand.replace(' ', '_'),
-            "perfume": self.name.replace(' ', '_'),
-            "card": os.path.abspath(f'./db/cards/{self.brand.replace(' ', '_')}_{self.name.replace(' ', '_')}.jpeg')
-        }
-        # self.f_id = None
-        # self.f_score = None
-        # self.f_accords = None
-        # self.f_notes = None
-        # self.f_card = os.path.abspath(f'./db/cards/{self.fragrantica["designer"]}_{self.fragrantica["perfume"]}')
-        # self.f_link = f'https://www.fragrantica.com/perfume/{self.fragrantica["designer"]}/{self.fragrantica["perfume"]}-{self.fragrantica["id"]}.html'
+        # self.file_brand = self.brand.replace(' ', '_')
+        # self.file_name = self.name.replace(' ', '_')
+        # self.link_brand = self.brand.replace(' ', '-')
+        # self.link_name = self.name.replace(' ', '-')
+        self.card = os.path.abspath(f'./db/cards/{self.brand.replace(' ', '_')}_{self.name.replace(' ', '_')}.jpeg')
+        # get all fragrantica related details upon initialisation
+        fragrantica = self._get_fragrantica_details()
+        self.id = fragrantica["id"] 
+        self.year = fragrantica["year"]
+        self.link = fragrantica["link"]
 
-    def get_fragrantica_details(self):
-        return self.fragrantica
+        # download the card
+        self._get_fragrantica_card()
+
+    def _get_fragrantica_details(self):
+        return search_algolia(self.brand, self.name)
+    
+    def _get_fragrantica_card(self):
+        download_fragrantica_card(self.link, self.card)
 
     def __repr__(self) -> str:
-        name = f'{self.brand} - {self.name}'
-        name_score = f'{self.brand} - {self.name} ({self.my_score})'
-        if self.my_score == None:
-            return name
-        else:
-            return name_score
+        result = f'{self.brand} - {self.name} ({self.year})'
+        if self.my_score != None:
+            result += f'{result} {self.my_score}'
+
+        return result
         
     def __eq__(self, other: object) -> bool:
         if isinstance(other, self.__class__):

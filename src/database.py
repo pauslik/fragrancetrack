@@ -15,9 +15,10 @@ class Database():
 
     def import_db_from_excel(self, filepath):
         import_df = pl.read_excel(filepath)
-        # raises exceptions if schema is not correct
-        schema_check = self.df.match_to_schema(import_df.collect_schema(), extra_columns='ignore')
-        new_df = self.df.vstack(import_df)
+        # raises exceptions if schema is not ccompatible
+        schema_check = self.df.match_to_schema(import_df.collect_schema(), extra_columns='ignore', missing_columns='insert')
+        # new_df = self.df.vstack(import_df)
+        new_df = pl.concat([self.df, import_df], how="diagonal_relaxed", )
         self.df = new_df
         self._save_db(overwrite=True)
 
@@ -47,6 +48,7 @@ class Database():
         return True
 
 
+# TODO make a dropdown of all available fragrances? Need to do more webscraping
 class PublicList(Database):
     def __init__(self, file) -> None:
         self.schema = pl.Schema({"brand": pl.String(), "name": pl.String()})
@@ -57,7 +59,15 @@ class Tracker(Database):
     def __init__(self, file) -> None:
         # db schema: MUST MATCH FRAGRANCE CLASS FIELDS
         # TODO make a schema builder from class variables
-        self.schema = pl.Schema({"brand": pl.String(), "name": pl.String(), "my_score": pl.Int64()})
+        self.schema = pl.Schema({
+            "brand": pl.String(), 
+            "name": pl.String(), 
+            "my_score": pl.Int64(),
+            "card": pl.String(), 
+            "id": pl.Int64(),
+            "year": pl.Int64(),
+            "link": pl.String(), 
+        })
         super().__init__(file=file, schema=self.schema)  
 
     # TODO add check & download of cards for every perfume in the tracker
@@ -93,7 +103,7 @@ class Tracker(Database):
             return False
 
     def remove_fragrance(self, frag: Fragrance):
-        # Need to get the Fragrance object from the existing Database in order to remove it
+        # TODO change this so it removes by brand+name
         condition = self._condition(frag)
         removed = self._remove_inplace(condition)
         return removed
