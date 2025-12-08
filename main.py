@@ -4,16 +4,10 @@ from src.fragrance import Fragrance
 
 def main():
     tracker_db = Tracker("tracker_db.json")
-    # tracker_db.import_db_from_excel(os.path.abspath("input/db/old.xlsx"))
-    # tracker_db.import_db_from_excel(os.path.abspath("input/db/new.xlsx"))
     
-    # leparfum = Fragrance("Jean Paul Gaultier", "Le Male Le Parfum")
-    # tracker_db.update_fragrance(leparfum)
+    tracker_db.check_all_cards()
 
-    reflection = Fragrance("Amouage", "Reflection Man")
-    tracker_db.update_fragrance(reflection)
-
-    print(tracker_db.df)
+    tracker_db._save_db(overwrite=True)
 
 
 if __name__ == "__main__":

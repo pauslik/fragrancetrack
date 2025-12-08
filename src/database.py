@@ -1,6 +1,9 @@
 import os
 import polars as pl
+from datetime import datetime
 from src.fragrance import Fragrance
+from src.fragrantica import download_fragrantica_card
+
 
 class Database():
     def __init__(self, file, schema: pl.Schema) -> None:
@@ -12,18 +15,14 @@ class Database():
         self.schema = schema
         # try loading existing database, create new otherwise
         self.df = self._load_db()
+        self._make_backup()
 
-    def import_db_from_excel(self, filepath):
-        import_df = pl.read_excel(filepath)
-        # raises exceptions if schema is not ccompatible
-        schema_check = self.df.match_to_schema(import_df.collect_schema(), extra_columns='ignore', missing_columns='insert')
-        # new_df = self.df.vstack(import_df)
-        new_df = pl.concat([self.df, import_df], how="diagonal_relaxed", )
-        self.df = new_df
-        self._save_db(overwrite=True)
+    def _make_backup(self):
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        backup_file = os.path.join(self.dir, 'backup/', f"{timestamp}_{self.file}")
+        self._save_copy(backup_file)
 
-
-    def save_copy(self, filepath):
+    def _save_copy(self, filepath):
         if os.path.exists(filepath):
             raise Exception(f'File already exists: {filepath}')
         else:
@@ -33,7 +32,7 @@ class Database():
     # DB load/save
     def _load_db(self):
         if (os.path.exists(self.path)):
-            df = pl.read_json(self.path)
+            df = pl.read_json(self.path, )
             if not df.is_empty():
                 return df
         # runs if file doesn't exist or is empty
@@ -44,6 +43,7 @@ class Database():
         if not overwrite and os.path.exists(self.path):
             raise Exception("Database already exists. Use 'force' option to overwrite.")
         else:
+            self.df = self.df.sort(["brand", "name"])
             self.df.write_json(self.path)
         return True
 
@@ -74,7 +74,7 @@ class Tracker(Database):
 
     def get_fragrance(self, brand, name) -> Fragrance:
         frag = Fragrance(brand, name)
-        condition = self._condition(frag)
+        condition = self._condition(frag.brand, frag.name)
         if self._frag_exists(condition):
             df = self.df.filter(condition)
             df_dict = df.row(0, named=True)
@@ -84,10 +84,11 @@ class Tracker(Database):
             raise Exception(f'Fragrance not in database: {brand} - {name}')
         return frag
 
+    # TODO merge these two into one method add_update_fragrance()
     def add_fragrance(self, frag: Fragrance):
         new_row = pl.DataFrame(frag.__dict__)
-        if self._frag_exists(self._condition(frag)):
-            # TODO if exists, call update for provided fields?
+        if self._frag_exists(self._condition(frag.brand, frag.name)):
+            self._update_inplace(new_row)
             return False
         else:
             self._add_inplace(new_row)
@@ -95,25 +96,40 @@ class Tracker(Database):
 
     def update_fragrance(self, frag: Fragrance):
         new_row = pl.DataFrame(frag.__dict__)
-        if self._frag_exists(self._condition(frag)):
+        if self._frag_exists(self._condition(frag.brand, frag.name)):
             self._update_inplace(new_row)
             return True
         else:
             self.add_fragrance(frag)
             return False
 
-    def remove_fragrance(self, frag: Fragrance):
-        # TODO change this so it removes by brand+name
-        condition = self._condition(frag)
+    # DON'T USE THIS, WILL GET BLOCKED IF YOU HAVE MANY FRAGRANCES
+    def _update_all_cards(self):
+        for row in self.df.iter_rows(named=True):
+            download_fragrantica_card(row["link"], row['card'], True)
+
+    def check_all_cards(self):
+        for row in self.df.iter_rows(named=True):
+            if not os.path.exists(row['card']):
+                download_fragrantica_card(row["link"], row['card'], False)
+
+
+    def remove_fragrance(self, brand, name):
+        condition = self._condition(brand, name)
         removed = self._remove_inplace(condition)
         return removed
         
-
+    def import_db_from_excel(self, filepath):
+        import_df = pl.read_excel(filepath)
+        # raises exceptions if schema is not compatible
+        schema_check = self.df.match_to_schema(import_df.collect_schema(), extra_columns='ignore', missing_columns='insert')
+        for row in import_df.iter_rows(named=True):
+            new_frag = Fragrance(row["brand"], row["name"], row["my_score"])
+            self.add_fragrance(new_frag)
+        self._save_db(overwrite=True)
 
     # DB manipulation helper methods
-    def _condition(self, frag: Fragrance):
-        brand = frag.brand
-        name = frag.name
+    def _condition(self, brand, name):
         return (pl.col("brand") == brand) & (pl.col("name") == name)
 
     def _frag_exists(self, condition) -> bool:
@@ -121,7 +137,8 @@ class Tracker(Database):
         return exists
 
     def _add_inplace(self, new_row: pl.DataFrame):
-        self.df = self.df.vstack(new_row)
+        new_row_aligned = new_row.match_to_schema(self.df.schema, missing_columns="insert", extra_columns="ignore")
+        self.df = self.df.vstack(new_row_aligned)
         self._save_db(overwrite=True)
         return True
     

@@ -8,16 +8,12 @@ def write_temp_html(html):
     with open(os.path.abspath("./temp.html"), "w") as file:
         file.write(html)
 
-# def find_fragrantica_page(frag: Fragrance):
-#     link = frag.link
-#     # link = "https://www.fragrantica.com/perfume/Amouage/Reflection-Man-920.html"
-#     return link
-
+# TODO see if it's possible to only get the meta tages in head instead of the whole page
 def get_fragrantica_html(link):
     response = requests.get(link, impersonate="chrome")
     if response.status_code == 200:
         html = response.text
-        # write_temp_html(html)
+        write_temp_html(html)
     else:
         raise Exception(f"Failed to get the HTML: {response.status_code}:{response.text}")
 
@@ -30,13 +26,7 @@ def parse_fragrantica_page(html: str) -> dict:
 
     soup = BeautifulSoup(html, 'html.parser')
 
-    # find card link (expect this to be in the same place everytime)
-    # image_container = soup.find("div", class_="carousel-cell-photo is-selected")
-    # print(image_container)
-    # image = image_container.find("div").find("a")
-    # image_link = image["href"]
-
-
+    image_link = None
     all_images = soup.find_all("meta", property="og:image")
     for image in all_images:
         link = image["content"]
@@ -44,7 +34,10 @@ def parse_fragrantica_page(html: str) -> dict:
             if link.startswith(card_repository+'en-p_c'):
                 image_link = link
                 break
-    # TODO add an exception after it checks every meta tag and doesn't find the correct one
+
+    if image_link == None:
+        raise Exception(f'Link to card not found')
+
     match = re.search(pattern, image_link)
     if isinstance(match, re.Match):
         image_file = match.group(0)
@@ -52,15 +45,13 @@ def parse_fragrantica_page(html: str) -> dict:
         raise Exception(f'Card link pattern ({pattern}) not found in string: {image_link}')
     card_link = card_repository + image_file
     
+    # returning a dict just in case we would want to parse for something more
     result["card"] = card_link
 
-    # TODO parse all other info
-    # return aggregated dict with all relevant values found
     return result
 
-def download_fragrantica_card(frag_link, file_path):
-    # TODO check if the image already exists
-    if os.path.exists(file_path):
+def download_fragrantica_card(frag_link, file_path, overwrite=True):
+    if os.path.exists(file_path) and not overwrite:
         return False
     frag_html = get_fragrantica_html(frag_link)
     html_dict = parse_fragrantica_page(frag_html)

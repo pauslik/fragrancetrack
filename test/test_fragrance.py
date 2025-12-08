@@ -11,8 +11,9 @@ class TestFragrance(unittest.TestCase):
         # repr
         string1 = str(frag1)
         string2 = str(frag2)
-        self.assertEqual(string1, "Azzaro - The Most Wanted Intense")
-        self.assertEqual(string2, "Azzaro - The Most Wanted Parfum (10)")
+        # brand - name (year), TMW Parfum has 0 as the year for some reason
+        self.assertEqual(string1, "Azzaro - The Most Wanted Intense (2024)")
+        self.assertEqual(string2, "Azzaro - The Most Wanted Parfum (0)")
         # eq
         self.assertEqual(frag1, frag3)
         self.assertNotEqual(frag1, frag2)
