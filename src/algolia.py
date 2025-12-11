@@ -107,12 +107,18 @@ def auto_search_fragrance(brand: str, name: str) -> dict:
     return best
 
 # TODO use this for the web search, display only ['dizajner']
-def search_designers(brand):
+def search_designers(brand, n=9):
     query = brand
-    hits = algolia_search(query, INDEX_DESIGNERS, 10)
+    hits = algolia_search(query, INDEX_DESIGNERS, n)
 
-    return hits[0]['dizajner']
-
+    results = []
+    for hit in hits:
+        hit_dict = {}
+        hit_dict["id"] = hit['id']
+        hit_dict["brand"] = hit['dizajner']
+        hit_dict["slug"] = hit['slug']
+        hit_dict["niche"] = hit['niche']
+        results.append(hit_dict)
     # get these values:
     # "Louis Vuitton"
     # id = hits[0]['id'] = 2747
@@ -120,22 +126,32 @@ def search_designers(brand):
     # slug = hits[0]['slug'] = 'Louis-Vuitton'
     # niche = hits[0]['niche'] = 'niche'->True / ''->False
     # generate_website = f'https://www.fragrantica.com/designers/{slug}.html'
+    return results
 
-    # after designer is selected, pass it's value to search_fragrance()
 
 # TODO use this for the web search, display only ['naslov']
-def search_fragrance(brand, name):
+def search_fragrance(brand, name, n=10):
     query = f'{brand} {name}'
     hits = algolia_search(query, INDEX_PERFUMES, 50)
 
-    filtered_hits = []
+    results = []
     for hit in hits:
         if str_eq(brand, hit['dizajner']):
-            filtered_hits.append(hit)
-
-    return filtered_hits[:10]
+            hit_dict = {}
+            hit_dict["id"] = hit['id']
+            hit_dict["name"] = hit['naslov']
+            hit_dict["brand"] = hit['dizajner']
+            hit_dict["sex"] = hit['spol']
+            hit_dict["year"] = hit['godina']
+            hit_dict["slug"] = hit['slug']
+            hit_dict["rating"] = hit['rating']
+            hit_dict["link"] = hit['url']['EN']
+            hit_dict["thumb"] = hit['thumbnail']
+            hit_dict["picture"] = hit['picture']
+            results.append(hit_dict)
+    return results[:n]
 
 # TODO add real tests
-# dess = search_designers("Jean Paul Gaultier")
-# frags = search_fragrance(dess, "Le Male Le Parfum")
+dess = search_designers("Jean Paul Gaultier")
+frags = search_fragrance(dess[0]['brand'], "Le Male Le Parfum")
 # print(frags)

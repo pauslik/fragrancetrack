@@ -1,0 +1,7 @@
+beautifulsoup4==4.14.3
+curl-cffi==0.13.0
+fastapi==0.124.2
+fastexcel==0.18.0
+nicegui==3.4.0
+polars==1.35.2
+requests==2.32.5
