@@ -10,7 +10,5 @@ wheels/
 .venv
 
 # custom
-db/backup/*
-db/tracker_db.json
 input/*
 temp.html
