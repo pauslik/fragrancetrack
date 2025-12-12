@@ -1,15 +1,18 @@
 import os
 import polars as pl
-from nicegui import ui
+from nicegui import app, ui
 from src.database import Tracker
 from src.algolia import search_designers, search_fragrance
-from fastapi.staticfiles import StaticFiles
-from nicegui import app, ui
+
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 image_dir = os.path.join(current_dir, "db/cards")
+# Read from environment variable, fallback to a dev key if missing
+storage_secret = os.environ.get('NICEGUI_SECRET', 'dev-secret-key-do-not-use-in-prod')
+
 
 app.add_static_files('/cards', image_dir)
+# ui.dark_mode(True)
 
 # Create sample dataframe
 db = Tracker("tracker_db.json")
@@ -35,11 +38,11 @@ def my_frags_page():
     # 3 items per row with gap-4 spacing
         with ui.grid().classes('grid-cols-3 gap-4 w-full'):
             for row in data.iter_rows(named=True):
-                with ui.card().classes('w-full'):           
+                with ui.card().classes('w-fullcursor-pointer hover:bg-gray-100') \
+                        .on('click', lambda e, perfume=row: open_add_frag(perfume)):           
                     # abspath to web URL
                     filename = os.path.basename(row['card'])
                     image_url = f'/cards/{filename}'
-                    
                     # display card
                     ui.image(image_url).classes('w-full object-contain')
                     # display text
@@ -53,6 +56,7 @@ def my_frags_page():
                                 ui.label('My Score:').classes('text-lg font-bold uppercase')
                                 ui.label(str(row['my_score'])).classes('text-red-600 text-2xl font-bold leading-none')
 
+    # >>>HANDLERS<<<
     # filtering logic which updates the display
     def update_filter(e):
         value = e.value
@@ -71,6 +75,12 @@ def my_frags_page():
         filtered_df = filtered_df.head(9)
         # 3. Update the table's data
         build_grid.refresh(filtered_df)
+
+    def open_add_frag(perfume):
+        app.storage.user['selected_perfume'] = perfume
+        app.storage.user['prev_page'] = '/my_frags'
+        ui.navigate.to('/add_frag')
+
 
     # interactive search for brand/name
     ui.input('Search by Brand/Name', on_change=update_filter) \
@@ -169,6 +179,7 @@ def search_page():
     # Save the entire dictionary to user session
     def open_add_frag(perfume):
         app.storage.user['selected_perfume'] = perfume
+        app.storage.user['prev_page'] = '/search'
         ui.navigate.to('/add_frag')
 
     # brand search input
@@ -184,14 +195,26 @@ def search_page():
 def add_frag_page():
     # Retrieve data
     perfume = app.storage.user.get('selected_perfume')
+    prev_page = app.storage.user.get('prev_page')
+    if not prev_page:
+        prev_page = '/'
     if not perfume:
         ui.label('No perfume selected.').classes('text-red-500')
-        ui.link('Go back to Search', '/search')
+        ui.link('Go back', prev_page)
         return
-    card = f'https://www.fragrantica.com/mdimg/perfume-social-cards/en-p_c_{perfume['id']}.jpeg'
-
-    # Build UI using the dictionary
-    ui.link('<- Back', '/search').classes('mb-4 block')
+    # if we already have this fragrance, get it's details from our DB, otherwise - from fragrantica
+    matches = db.df.filter((db.df['brand'] == perfume['brand']) & (db.df['name'] == perfume['name']))
+    if not matches.is_empty():
+        my_score = matches.select("my_score").item(0, 0)
+        filename = os.path.basename(matches.select("card").item(0, 0))
+        card = f'/cards/{filename}'
+    else:
+        card = f'https://www.fragrantica.com/mdimg/perfume-social-cards/en-p_c_{perfume['id']}.jpeg'
+        my_score = None
+    
+    with ui.row().classes('w-full'):
+        ui.label('Add/Update fragrance').classes('text-xl') 
+        ui.link('<- Back', prev_page).classes('ml-auto') 
     
     with ui.row().classes('w-full gap-8'):
         # Left: Image
@@ -201,24 +224,29 @@ def add_frag_page():
         with ui.column():
             ui.label(perfume['name']).classes('text-4xl font-bold')
             ui.label(perfume['brand']).classes('text-xl text-gray-500')
-            
             ui.separator().classes('my-4')
-            
-            # Example of displaying score
-            # TODO add input for score
-            with ui.row().classes('items-center gap-2'):
+            # displaying score input
+            with ui.column().classes('gap-2'):
                 ui.label('My Score:').classes('font-bold')
-                ui.label(str(perfume.get('score', '-'))).classes('text-2xl text-red-600 font-bold')
+                score_input = ui.number(value=my_score, min=0, max=10, precision=1).classes('text-2xl text-red-600 font-bold')
             
-            # TODO add 'add' button to create Fragrance() instance and save to DB
+            # >>>HANDLERS<<<
+            # check input and add/update fragrance
+            def handle_save():
+                if score_input.value is None:
+                    ui.notify('Please enter a score', type='warning')
+                    return
+                db.update_fragrance(perfume['brand'], perfume['name'], int(score_input.value))
+                ui.notify(f"Saved", type='positive')
+
+            ui.button('Save', on_click=handle_save)
 
 
 # ====================================================================
 # Run with FastAPI integration
 ui.run_with(
     app,
-    storage_secret='my_secret_key')
-
+    storage_secret=storage_secret)
 
 if __name__ in {"__main__", "__mp_main__"}:
-    ui.run(storage_secret='my_secret_key', port=8080)
+    ui.run()

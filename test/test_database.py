@@ -35,15 +35,14 @@ class TestDatabase(unittest.TestCase):
         assert_frame_equal(df, self.db.df)
 
     def test_add_frag(self):
-        new_frag = Fragrance("Versace", "Eros", 10)
         # new
-        self.assertTrue(self.db.add_fragrance(new_frag))
+        self.assertTrue(self.db.add_fragrance("Versace", "Eros", 10))
         # existing
-        self.assertFalse(self.db.add_fragrance(new_frag))
+        self.assertFalse(self.db.add_fragrance("Versace", "Eros", 10))
 
     def test_get_frag(self):
         new_frag = Fragrance("Versace", "Eros", 9)
-        self.db.add_fragrance(new_frag)
+        self.db.add_fragrance("Versace", "Eros", 9)
         found = self.db.get_fragrance("Versace", "Eros")
         self.assertTrue(new_frag, found)
         with self.assertRaises(Exception):
@@ -52,8 +51,8 @@ class TestDatabase(unittest.TestCase):
     def test_remove_frag(self):
         frag1 = Fragrance("Jean Paul Gaultier", "Le Male Le Parfum", 10)
         frag2 = Fragrance("Viktor&Rolf", "Spicebomb Extreme")
-        self.db.add_fragrance(frag1)
-        self.db.add_fragrance(frag2)
+        self.db.add_fragrance("Jean Paul Gaultier", "Le Male Le Parfum", 10)
+        self.db.add_fragrance("Viktor&Rolf", "Spicebomb Extreme")
         # .drop because of different column types
         df = pl.DataFrame(frag2.__dict__)
         df = df.drop(df.columns[2:])
@@ -69,11 +68,11 @@ class TestDatabase(unittest.TestCase):
         df1 = df1.drop(df1.columns[2:])
         df2 = df2.drop(df2.columns[2:])
         # not in DB
-        self.assertFalse(self.db.update_fragrance(frag1))
+        self.assertFalse(self.db.update_fragrance("Kajal", "Äican"))
         df1_db = pl.DataFrame(self.db.get_fragrance("Kajal", "Äican").__dict__)
         df1_db = df1_db.drop(df1_db.columns[2:])
         assert_frame_equal(df1_db, df1)
-        self.assertTrue(self.db.update_fragrance(frag2))
+        self.assertTrue(self.db.update_fragrance("Kajal", "Äican", 10))
         df2_db = pl.DataFrame(self.db.get_fragrance("Kajal", "Äican").__dict__)
         df2_db = df2_db.drop(df2_db.columns[2:])
         assert_frame_equal(df2_db, df2)

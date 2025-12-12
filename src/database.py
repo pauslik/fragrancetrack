@@ -17,13 +17,14 @@ class Database():
         self.df = self._load_db()
         self._make_backup()
 
+    # TODO make a proper cleanup instead of overwriting the same daily file
     def _make_backup(self):
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        timestamp = datetime.now().strftime("%Y-%m-%d")
         backup_file = os.path.join(self.dir, 'backup/', f"{timestamp}_{self.file}")
-        self._save_copy(backup_file)
+        self._save_copy(backup_file, overwrite=True)
 
-    def _save_copy(self, filepath):
-        if os.path.exists(filepath):
+    def _save_copy(self, filepath, overwrite=False):
+        if os.path.exists(filepath) and not overwrite:
             raise Exception(f'File already exists: {filepath}')
         else:
             self.df.write_json(filepath)
@@ -43,7 +44,9 @@ class Database():
         if not overwrite and os.path.exists(self.path):
             raise Exception("Database already exists. Use 'force' option to overwrite.")
         else:
+            # sort and remove duplicates just in case before saving
             self.df = self.df.sort(["brand", "name"])
+            self.df = self.df.unique(subset=["brand", "name"], keep="last")
             self.df.write_json(self.path)
         return True
 
@@ -84,23 +87,18 @@ class Tracker(Database):
             raise Exception(f'Fragrance not in database: {brand} - {name}')
         return frag
 
-    # TODO merge these two into one method add_update_fragrance()
-    def add_fragrance(self, frag: Fragrance):
+    # TODO get rid of add_fragrance()
+    def add_fragrance(self, brand, name, my_score=0):
+        self.update_fragrance(brand, name, my_score)
+
+    def update_fragrance(self, brand, name, my_score=0):
+        frag = Fragrance(brand, name, my_score)
         new_row = pl.DataFrame(frag.__dict__)
         if self._frag_exists(self._condition(frag.brand, frag.name)):
             self._update_inplace(new_row)
-            return False
+            return True
         else:
             self._add_inplace(new_row)
-            return True
-
-    def update_fragrance(self, frag: Fragrance):
-        new_row = pl.DataFrame(frag.__dict__)
-        if self._frag_exists(self._condition(frag.brand, frag.name)):
-            self._update_inplace(new_row)
-            return True
-        else:
-            self.add_fragrance(frag)
             return False
 
     # DON'T USE THIS, WILL GET BLOCKED IF YOU HAVE MANY FRAGRANCES
@@ -124,8 +122,7 @@ class Tracker(Database):
         # raises exceptions if schema is not compatible
         schema_check = self.df.match_to_schema(import_df.collect_schema(), extra_columns='ignore', missing_columns='insert')
         for row in import_df.iter_rows(named=True):
-            new_frag = Fragrance(row["brand"], row["name"], row["my_score"])
-            self.add_fragrance(new_frag)
+            self.add_fragrance(row["brand"], row["name"], row["my_score"])
         self._save_db(overwrite=True)
 
     # DB manipulation helper methods
@@ -143,7 +140,7 @@ class Tracker(Database):
         return True
     
     def _update_inplace(self, new_row: pl.DataFrame):
-        self.df = self.df.update(new_row)
+        self.df = self.df.update(new_row, on=["brand", "name"], how="left")
         self._save_db(overwrite=True)
         return True
     

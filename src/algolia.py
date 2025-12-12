@@ -152,6 +152,6 @@ def search_fragrance(brand, name, n=10):
     return results[:n]
 
 # TODO add real tests
-dess = search_designers("Jean Paul Gaultier")
-frags = search_fragrance(dess[0]['brand'], "Le Male Le Parfum")
+# dess = search_designers("Jean Paul Gaultier")
+# frags = search_fragrance(dess[0]['brand'], "Le Male Le Parfum")
 # print(frags)

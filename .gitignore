@@ -11,6 +11,5 @@ wheels/
 
 # custom
 db/backup/*
-db/cards/*
 db/tracker_db.json
 input/*
