@@ -3,7 +3,7 @@ from enum import Enum
 import unicodedata
 
 APP_ID = "FGVI612DFZ"
-API_KEY = "NzYwYzI2MGU3NTM4NGMwODU4NzdkZTI3OGEwMzQ4ZDRmZmRiZWI3MjMwYmY1ZTQzZTk1MTU3OTNmNzQyMzYwMHZhbGlkVW50aWw9MTc2NTk0MDgyMg=="
+API_KEY = "M2M5ZmE4YWEzMmNkOGM1YTJmYTRmOTBmYjA5NTBhNDExYTA1ODU3OWM5NzFhN2M4ZGY5ZjU0MmY0OGI3NzVlOHZhbGlkVW50aWw9MTc2NjczNzI4Ng=="
 INDEX_PERFUMES = "fragrantica_perfumes"
 INDEX_DESIGNERS = "fragrantica_designers"
 
@@ -64,7 +64,6 @@ def algolia_search(query: str, index: str, results = 20):
         "Content-Type": "application/json"
     }
 
-    query = query
     payload = {
         "query": query,
         "hitsPerPage": results

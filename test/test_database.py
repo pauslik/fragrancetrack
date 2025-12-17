@@ -36,13 +36,13 @@ class TestDatabase(unittest.TestCase):
 
     def test_add_frag(self):
         # new
-        self.assertTrue(self.db.add_fragrance("Versace", "Eros", 10))
+        self.assertFalse(self.db.update_fragrance("Xerjoff", "Uden", 10))
         # existing
-        self.assertFalse(self.db.add_fragrance("Versace", "Eros", 10))
+        self.assertTrue(self.db.update_fragrance("Xerjoff", "Uden", 10))
 
     def test_get_frag(self):
         new_frag = Fragrance("Versace", "Eros", 9)
-        self.db.add_fragrance("Versace", "Eros", 9)
+        self.db.update_fragrance("Versace", "Eros", 9)
         found = self.db.get_fragrance("Versace", "Eros")
         self.assertTrue(new_frag, found)
         with self.assertRaises(Exception):
@@ -51,8 +51,8 @@ class TestDatabase(unittest.TestCase):
     def test_remove_frag(self):
         frag1 = Fragrance("Jean Paul Gaultier", "Le Male Le Parfum", 10)
         frag2 = Fragrance("Viktor&Rolf", "Spicebomb Extreme")
-        self.db.add_fragrance("Jean Paul Gaultier", "Le Male Le Parfum", 10)
-        self.db.add_fragrance("Viktor&Rolf", "Spicebomb Extreme")
+        self.db.update_fragrance("Jean Paul Gaultier", "Le Male Le Parfum", 10)
+        self.db.update_fragrance("Viktor&Rolf", "Spicebomb Extreme")
         # .drop because of different column types
         df = pl.DataFrame(frag2.__dict__)
         df = df.drop(df.columns[2:])

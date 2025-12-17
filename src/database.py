@@ -88,8 +88,8 @@ class Tracker(Database):
         return frag
 
     # TODO get rid of add_fragrance()
-    def add_fragrance(self, brand, name, my_score=0):
-        self.update_fragrance(brand, name, my_score)
+    # def add_fragrance(self, brand, name, my_score=0):
+    #     return self.update_fragrance(brand, name, my_score)
 
     def update_fragrance(self, brand, name, my_score=0):
         frag = Fragrance(brand, name, my_score)
@@ -122,7 +122,7 @@ class Tracker(Database):
         # raises exceptions if schema is not compatible
         schema_check = self.df.match_to_schema(import_df.collect_schema(), extra_columns='ignore', missing_columns='insert')
         for row in import_df.iter_rows(named=True):
-            self.add_fragrance(row["brand"], row["name"], row["my_score"])
+            self.update_fragrance(row["brand"], row["name"], row["my_score"])
         self._save_db(overwrite=True)
 
     # DB manipulation helper methods
