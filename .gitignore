@@ -10,6 +10,7 @@ wheels/
 .venv
 
 # custom
+README.md
 db/cards/*
 db/backup/*
 db/tracker_db.json
