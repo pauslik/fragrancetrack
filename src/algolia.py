@@ -1,9 +1,9 @@
 from curl_cffi import requests
-from enum import Enum
 import unicodedata
 
-APP_ID = "FGVI612DFZ"
-API_KEY = "M2M5ZmE4YWEzMmNkOGM1YTJmYTRmOTBmYjA5NTBhNDExYTA1ODU3OWM5NzFhN2M4ZGY5ZjU0MmY0OGI3NzVlOHZhbGlkVW50aWw9MTc2NjczNzI4Ng=="
+# TODO move these into a config file (or better yet - env variable that could be passed when deploying this (e.g. in Render))
+ALGOLIA_APP_ID = "FGVI612DFZ"
+ALGOLIA_API_KEY = "M2M5ZmE4YWEzMmNkOGM1YTJmYTRmOTBmYjA5NTBhNDExYTA1ODU3OWM5NzFhN2M4ZGY5ZjU0MmY0OGI3NzVlOHZhbGlkVW50aWw9MTc2NjczNzI4Ng=="
 INDEX_PERFUMES = "fragrantica_perfumes"
 INDEX_DESIGNERS = "fragrantica_designers"
 
@@ -56,11 +56,11 @@ def find_best(brand: str, name: str, hits: list) -> dict:
     return build_result(name_matches[0])
 
 def algolia_search(query: str, index: str, results = 20):
-    url = f"https://{APP_ID}-dsn.algolia.net/1/indexes/{index}/query"
+    url = f"https://{ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/{index}/query"
 
     headers = {
-        "X-Algolia-Application-Id": APP_ID,
-        "X-Algolia-API-Key": API_KEY,
+        "X-Algolia-Application-Id": ALGOLIA_APP_ID,
+        "X-Algolia-API-Key": ALGOLIA_API_KEY,
         "Content-Type": "application/json"
     }
 
@@ -149,8 +149,3 @@ def search_fragrance(brand, name, n=10):
             hit_dict["picture"] = hit['picture']
             results.append(hit_dict)
     return results[:n]
-
-# TODO add real tests
-# dess = search_designers("Jean Paul Gaultier")
-# frags = search_fragrance(dess[0]['brand'], "Le Male Le Parfum")
-# print(frags)

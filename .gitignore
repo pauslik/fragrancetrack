@@ -14,4 +14,4 @@ db/cards/*
 db/backup/*
 db/tracker_db.json
 input/*
-temp.html
+test_new.sh

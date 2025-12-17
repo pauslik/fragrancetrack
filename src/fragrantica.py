@@ -3,28 +3,39 @@ import re
 from curl_cffi import requests
 from bs4 import BeautifulSoup
 
+def html_to_soup(html):
+    soup = BeautifulSoup(html, 'html.parser')
+    return soup
 
-def write_temp_html(html):
-    with open(os.path.abspath("./temp.html"), "w") as file:
-        file.write(html)
 
-# TODO see if it's possible to only get the meta tages in head instead of the whole page
 def get_fragrantica_html(link):
-    response = requests.get(link, impersonate="chrome")
-    if response.status_code == 200:
-        html = response.text
-        write_temp_html(html)
-    else:
-        raise Exception(f"Failed to get the HTML: {response.status_code}:{response.text}")
+    # response = requests.get(link, impersonate="chrome")
+    with requests.Session() as s:
+        with s.stream("GET", link, impersonate="chrome") as response:
+            # handle bad response
+            if response.status_code != 200:
+                raise Exception(f"Failed to get the HTML: {response.status_code}:{response.text}")
 
-    return html
+            head_content = []
+            for line in response.iter_lines():
+                if line:
+                    decoded_line = line.decode('utf-8', errors='ignore')
+                    head_content.append(decoded_line)
+                    # Don't want your <body>, just want <head> - XXXTENTACION
+                    if "</head>" in decoded_line.lower() or "<body" in decoded_line.lower():
+                        break
+            
+            full_head_html = "\n".join(head_content)
+            return full_head_html
+
+
 
 def parse_fragrantica_page(html: str) -> dict:
     result = {}
     card_repository = "https://fimgs.net/mdimg/perfume-social-cards/"
     pattern = r'[^/]+$'
 
-    soup = BeautifulSoup(html, 'html.parser')
+    soup = html_to_soup(html)
 
     image_link = None
     all_images = soup.find_all("meta", property="og:image")
