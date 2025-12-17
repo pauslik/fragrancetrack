@@ -26,7 +26,7 @@ def home():
 
 # ====================================================================
 # search page of your own fragrances
-@ui.page('/my_frags')
+@ui.page('/my_frags', title="My fragrances")
 def my_frags_page():
     with ui.row().classes('w-full items-center mb-4'):
         ui.label('My Fragrances').classes('text-2xl mb-4')
@@ -92,7 +92,7 @@ def my_frags_page():
 
 # ====================================================================
 # Fragrantica.com online search (for new fragrances)
-@ui.page('/search')
+@ui.page('/search', title='Search online')
 def search_page():
     with ui.row().classes('w-full items-center mb-4'):
         ui.label('Fragrantica Search').classes('text-2xl mb-4')
@@ -191,7 +191,7 @@ def search_page():
 
 # ====================================================================
 # add found fragrance to your collection
-@ui.page('/add_frag')
+@ui.page('/add_frag', title="Add/Update")
 def add_frag_page():
     # Retrieve data
     perfume = app.storage.user.get('selected_perfume')
@@ -246,6 +246,7 @@ def add_frag_page():
 # Run with FastAPI integration
 ui.run_with(
     app,
+    title="FragranceTrack",
     storage_secret=storage_secret)
 
 if __name__ in {"__main__", "__mp_main__"}:
